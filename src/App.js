@@ -1,25 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import TaskList from './TaskList';
+import axios from 'axios';
 
-function App() {
+const App = () => {
+  const [tasks, setTasks] = useState([]);
+
+  useEffect(() => {
+    axios.get('http://localhost:3001/tasks')
+      .then(response => {
+        setTasks(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching tasks: ', error);
+      });
+  }, []);
+
+  const handleUpdate = (taskId, newTitle) => {
+    axios.patch(`http://localhost:3001/tasks/${taskId}`, { title: newTitle })
+      .then(response => {
+        const updatedTasks = tasks.map(task =>
+          task.id === taskId ? { ...task, title: newTitle } : task
+        );
+        setTasks(updatedTasks);
+      })
+      .catch(error => {
+        console.error('Error updating task: ', error);
+      });
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <h1>Task List</h1>
+      <TaskList tasks={tasks} onUpdate={handleUpdate} />
     </div>
   );
-}
+};
 
 export default App;
